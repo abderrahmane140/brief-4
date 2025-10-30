@@ -166,7 +166,7 @@
         <button id="closeBtn" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
       </div>
 
-      <form class="space-y-3">
+      <form class="space-y-3" id="form">
         <div>
           <label class="block text-xs text-slate-500 mb-1">Select Day</label>
           <select id="reservation-day" class="w-full rounded border border-slate-100 px-3 py-2 bg-white">
@@ -179,12 +179,12 @@
           </select>
         </div>
 
-        <input class="w-full rounded border border-slate-100 px-3 py-2" placeholder="Customer name" />
+        <input class="w-full rounded border border-slate-100 px-3 py-2" placeholder="Customer name" id="customerNmae" />
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs text-slate-500 mb-1">Start</label>
-            <select class="w-full rounded border border-slate-100 px-3 py-2 bg-white">
+            <select class="w-full rounded border border-slate-100 px-3 py-2 bg-white" id="startHour">
 
               <option>09:00</option>
               <option>10:00</option>
@@ -199,7 +199,7 @@
           </div>
           <div>
             <label class="block text-xs text-slate-500 mb-1">End</label>
-            <select class="w-full rounded border border-slate-100 px-3 py-2 bg-white">
+            <select class="w-full rounded border border-slate-100 px-3 py-2 bg-white" id="endHour">
       
               <option>09:30</option>
               <option>10:00</option>
@@ -221,16 +221,16 @@
           </div>
         </div>
 
-        <input class="rounded border border-slate-100 p-3 w-full mb-4" type="number" placeholder="People" />
+        <input class="rounded border border-slate-100 p-3 w-full mb-4" type="number" placeholder="People" id="numberPeopel" />
         <div class="">
-          <select class="rounded border border-slate-100 w-full p-3 mb-4">
+          <select class="rounded border border-slate-100 w-full p-3 mb-4" id="reservationType">
             <option>Standard</option>
             <option>VIP</option>
             <option>Group</option>
           </select>
         </div>
 
-        <button class="w-full bg-sky-600 text-white rounded px-3 py-2">Save</button>
+        <button type="submit" class="w-full bg-sky-600 text-white rounded px-3 py-2">Save</button>
       </form>
     </div>
   </div>

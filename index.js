@@ -2,13 +2,12 @@ const model = document.getElementById('reservation-modal');
 const closeBtn = document.getElementById('closeBtn');
 const opneBtn = document.getElementById('openBtn');
 
-const reservation_day = document.getElementById('reservation-day');
+
 const form = document.getElementById('form')
 const startHour = document.getElementById('startHour')
 const endHour = document.getElementById('endHour')
 
-console.log(model)
-
+console.log(form)
 const reservations = [];
 
 
@@ -29,14 +28,14 @@ closeBtn.addEventListener('click', closeModel);
 
 
 
-form.addEventListendaydayer('submit',(e) =>{
+form.addEventListener('submit',(e) =>{
     e.preventDefault();
 
     reservation = {
-        reservation_day : reservation_day.value,
+        reservation_day : document.getElementById('reservation-day').value,
         costumerName : document.getElementById('customerNmae').value,
-        startHour : startHour.value,
-        endHour : endHour.value,
+        startHour : document.getElementById('startHour').value,
+        endHour : document.getElementById('endHour').value,
         numberPeopel : document.getElementById('numberPeopel').value,
         reservationType : document.getElementById('reservationType').value
     }
@@ -44,9 +43,7 @@ form.addEventListendaydayer('submit',(e) =>{
     reservations.push(reservation)
     console.log(reservations)
 
-    const cart = document.createElement('div');
-    cart.classList = "bg-red-400"
-    document.body.appendChild(cart);
+
 })
 
 
