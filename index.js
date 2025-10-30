@@ -86,20 +86,26 @@ form.addEventListener('submit',(e) =>{
     ticket.innerHTML = `<span class="truncate">${costumer_name} (${number_people})</span>`;
 
     // add delete button 
-    const btn = document.createElement('div')   
-    btn.innerHTML =  '<i class="fa-solid fa fa-trash"></i>';
-    btn.className = "ml-2 cursor-pointer text-white";
+    const btnDelete = document.createElement('div')   
+    btnDelete.innerHTML =  '<i class="fa-solid fa fa-trash"></i>';
+    btnDelete.className = "ml-2 cursor-pointer text-white";
 
     ticket.dataset.index = reservations.length - 1;
 
-    btn.addEventListener('click', () => {
+    btnDelete.addEventListener('click', () => {
         const index = ticket.dataset.index;
         reservations.splice(index, 1);
         ticket.remove();
     })
 
-    ticket.appendChild(btn);
+    ticket.appendChild(btnDelete);
 
+    // add update button 
+    const btnUpdate = document.createElement('div')   
+    btnUpdate.innerHTML =  '<i class="fa-solid fa-pen-to-square"></i>';
+    btnUpdate.className = "ml-2 cursor-pointer text-white";
+
+    ticket.appendChild(btnUpdate)
 
 
     dayColumn.appendChild(ticket);
