@@ -1,142 +1,229 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
-    <link rel="stylesheet" href="./dist/output.css" />
-    <title>Calendar</title>
-  </head>
-  <body class="bg-gray-100 font-sans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calendar — 9am–5pm (No scroll)</title>
 
-        <div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm" id="model">
-        <div class="w-full max-w-md bg-white rounded-2xl p-8 shadow-2xl mx-4 border border-gray-100">
-            <button id="closeBtn" class="absolute top-3 text-5xl right-3 text-black">
-                &times;
-            </button>
-            <h1 class="text-2xl font-semibold mb-6 text-center text-sky-500">Create a New Reservation</h1>
 
-            <form class="space-y-5" id="form">
+  <script src="https://cdn.tailwindcss.com"></script>
 
-            <div>
-                <label class="block text-gray-700 mb-1 text-sm font-medium">Day</label>
-                <input id="reservation-day" name="day" readonly class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50" />
-            </div> 
-     
-            <div>
-                <label class="block text-gray-700 mb-2 text-sm font-medium">Customer Name</label>
-                <input type="text" required placeholder="Enter name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sky-400 focus:outline-none">
-            </div>
+  <style>
+    html,body { height:100%; }
+    .calendar-root { height: calc(100vh - 96px); } 
+    .hour-cell { height: calc((100vh - 200px) / 8); } 
+    @media (min-width: 1280px) {
+      .hour-cell { height: calc((100vh - 160px) / 8); }
+    }
 
-            
-            <div>
-                <label class="block text-gray-700 mb-2 text-sm font-medium">Start Hour</label>
-                <input type="time" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sky-400 focus:outline-none">
-            </div>
 
-            
-            <div>
-                <label class="block text-gray-700 mb-2 text-sm font-medium">End Hour</label>
-                <input type="time" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sky-400 focus:outline-none">
-            </div>
+    .event-card { box-shadow: 0 6px 18px rgba(15,23,42,0.08); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
-            
-            <div>
-                <label class="block text-gray-700 mb-2 text-sm font-medium">Number of People</label>
-                <input type="number" required placeholder="e.g. 4" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sky-400 focus:outline-none">
-            </div>
-
-            
-            <div>
-                <label class="block text-gray-700 mb-2 text-sm font-medium">Reservation Type</label>
-                <select class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sky-400 focus:outline-none">
-                <option value="">Select type</option>
-                <option value="VIP">VIP</option>
-                <option value="standard">Standard</option>
-                <option value="group">Group</option>
-                </select>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="w-full bg-sky-500 text-white py-2 rounded-lg hover:bg-sky-600 transition duration-200 font-medium">
-                Submit Reservation
-            </button>
-            </form>
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <button class="p-2 rounded-md hover:bg-slate-100 text-slate-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <div>
+          <div class="text-xs text-slate-500">Week of</div>
+          <div class="text-lg font-semibold tracking-tight">November 26 — 30</div>
         </div>
-        </div>
-
-
-
-
-    <header
-      class="flex justify-between items-center p-4 bg-green-400 text-white shadow-md"
-    >
-      <button class="p-2 hover:bg-green-500 rounded-full">
-        <i class="fa-solid fa-chevron-left text-2xl"></i>
-      </button>
-      <h1 class="text-2xl font-semibold">November 2018</h1>
-      <button class="p-2 hover:bg-green-500 rounded-full">
-        <i class="fa-solid fa-chevron-right text-2xl"></i>
-      </button>
-    </header>
-
-    <main class="max-w-6xl mx-auto mt-6">
-      <!-- Weekday titles -->
-      <div class="grid grid-cols-5 text-center font-semibold text-gray-700">
-        <div class="py-2 bg-gray-200 rounded-t-md">Mon</div>
-        <div class="py-2 bg-gray-200 rounded-t-md">Tue</div>
-        <div class="py-2 bg-gray-200 rounded-t-md">Wed</div>
-        <div class="py-2 bg-gray-200 rounded-t-md">Thu</div>
-        <div class="py-2 bg-gray-200 rounded-t-md">Fri</div>
       </div>
 
-      <!-- Calendar days -->
-      <div class="grid grid-cols-5 gap-2 mt-2" id="days">
-        <!-- Example days -->
-        <div
-        id="day"
-        data-day="29"  
-        class="bg-white h-28 p-2 rounded-md shadow hover:shadow-lg transition duration-200 flex flex-col justify-between"
-        >
-          <span id="29" class="text-gray-500 text-sm text-right" data-="">29</span>
+      <div class="flex items-center gap-3">
+        <button class="px-3 py-1 rounded-md bg-white border border-slate-100 text-sm hover:shadow-sm">Today</button>
+        <button class="px-4 py-2 rounded-md bg-sky-600 text-white text-sm hover:bg-sky-700" id="openBtn">New reservation</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 pt-6 calendar-root">
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden h-full grid grid-rows-[auto_1fr]">
+ 
+      <div class="grid grid-cols-6 border-b border-slate-100">
+        <div class="p-3 bg-white/80"></div>
+        <div class="p-3 text-center font-medium text-slate-700">Mon <div class="text-xs text-slate-400">Nov 26</div></div>
+        <div class="p-3 text-center font-medium text-slate-700">Tue <div class="text-xs text-slate-400">Nov 27</div></div>
+        <div class="p-3 text-center font-medium text-slate-700">Wed <div class="text-xs text-slate-400">Nov 28</div></div>
+        <div class="p-3 text-center font-medium text-slate-700">Thu <div class="text-xs text-slate-400">Nov 29</div></div>
+        <div class="p-3 text-center font-medium text-slate-700">Fri <div class="text-xs text-slate-400">Nov 30</div></div>
+      </div>
+
+  
+      <div class="grid grid-cols-6 h-full">
+
+        <div class="border-r border-slate-100 bg-slate-50">
+          <div class="flex flex-col h-full">
+    
+            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">09:00</div>
+            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">10:00</div>
+            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">11:00</div>
+            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">12:00</div>
+            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">13:00</div>
+            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">14:00</div>
+            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">15:00</div>
+            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">16:00</div>
+          </div>
         </div>
-        <div
-        id="day"
-        data-day="30"  
-          class="bg-white h-28 p-2 rounded-md shadow hover:shadow-lg transition duration-200 flex flex-col justify-between"
-        >
-          <span id="30" class="text-gray-500 text-sm text-right">30</span>
+
+
+
+        <div class="relative">
+          <div class="flex flex-col h-full">
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+          </div>
+
+
+          <div class="absolute left-4 right-4 top-[calc(1*100%/8)]" style="height:calc(2*(100%/8) - 12px)">
+            <div class="event-card bg-emerald-500 text-white rounded-lg px-3 py-2 text-xs flex items-center justify-between gap-3">
+              <div class="truncate font-medium">Marketing Meeting</div>
+              <div class="text-[11px] font-semibold">09:00–11:00</div>
+            </div>
+          </div>
         </div>
-        <div
-        id="day"
-        data-day="31"  
-          class="bg-white h-28 p-2 rounded-md shadow hover:shadow-lg transition duration-200 flex flex-col justify-between"
-        >
-          <span id="31" class="text-gray-500 text-sm text-right">31</span>
+
+        <div class="relative">
+          <div class="flex flex-col h-full">
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+          </div>
+
+          <div class="absolute left-4 right-4 top-[calc(3*100%/8)]" style="height:calc(1*(100%/8) - 12px)">
+            <div class="event-card bg-sky-500 text-white rounded-lg px-3 py-2 text-xs flex items-center justify-between gap-3">
+              <div class="truncate font-medium">Client Call</div>
+              <div class="text-[11px] font-semibold">12:00–13:00</div>
+            </div>
+          </div>
         </div>
-        <div
-        id="day"
-        data-day="1"  
-        class="bg-white h-28 p-2 rounded-md shadow hover:shadow-lg transition duration-200 flex flex-col justify-between"
-        >
-          <span id="1" class="text-gray-800 text-sm text-right">1</span>
+
+        <div class="relative">
+          <div class="flex flex-col h-full">
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+          </div>
+
+          <div class="absolute left-4 right-4 top-[calc(5*100%/8)]" style="height:calc(2*(100%/8) - 12px)">
+            <div class="event-card bg-purple-600 text-white rounded-lg px-3 py-2 text-xs flex items-center justify-between gap-3">
+              <div class="truncate font-medium">Team Sync</div>
+              <div class="text-[11px] font-semibold">14:00–16:00</div>
+            </div>
+          </div>
         </div>
-        <div
-        id="day"
-        data-day="2"  
-        class="bg-white h-28 p-2 rounded-md shadow hover:shadow-lg transition duration-200 flex flex-col justify-between"
-        >
-          <span id="2" class="text-gray-800 text-sm text-right">2</span>
+
+        <div class="relative">
+          <div class="flex flex-col h-full">
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+            <div class="hour-cell border-b border-slate-100"></div>
+          </div>
+
+          <div class="absolute left-4 right-4 top-[calc(6*100%/8)]" style="height:calc(1*(100%/8) - 12px)">
+            <div class="event-card bg-rose-500 text-white rounded-lg px-3 py-2 text-xs flex items-center justify-between gap-3">
+              <div class="truncate font-medium">Workshop</div>
+              <div class="text-[11px] font-semibold">15:00–16:00</div>
+            </div>
+          </div>
         </div>
 
       </div>
-    </main>
-    <script src="index.js"></script>
-  </body>
+    </div>
+  </main>
+
+
+  <div  class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40" id="reservation-modal">
+    <div class="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl mx-4">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-sky-600">Create reservation</h3>
+        <button id="closeBtn" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+      </div>
+
+      <form class="space-y-3">
+        <input class="w-full rounded border border-slate-100 px-3 py-2 bg-gray-50" placeholder="Day • 09:00" readonly />
+
+        <input class="w-full rounded border border-slate-100 px-3 py-2" placeholder="Customer name" />
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">Start</label>
+            <select class="w-full rounded border border-slate-100 px-3 py-2 bg-white">
+
+              <option>09:00</option>
+              <option>10:00</option>
+              <option>11:00</option>
+              <option>12:00</option>
+              <option>13:00</option>
+              <option>14:00</option>
+              <option>15:00</option>
+              <option>16:00</option>
+              <option>17:00</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">End</label>
+            <select class="w-full rounded border border-slate-100 px-3 py-2 bg-white">
+      
+              <option>09:30</option>
+              <option>10:00</option>
+              <option>10:30</option>
+              <option>11:00</option>
+              <option>11:30</option>
+              <option>12:00</option>
+              <option>12:30</option>
+              <option>13:00</option>
+              <option>13:30</option>
+              <option>14:00</option>
+              <option>14:30</option>
+              <option>15:00</option>
+              <option>15:30</option>
+              <option>16:00</option>
+              <option>16:30</option>
+              <option>17:00</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <input class="w-24 rounded border border-slate-100 px-3 py-2" placeholder="People" />
+          <select class="rounded border border-slate-100 px-3 py-2">
+            <option>Standard</option>
+            <option>VIP</option>
+            <option>Group</option>
+          </select>
+        </div>
+
+        <button class="w-full bg-sky-600 text-white rounded px-3 py-2">Save</button>
+      </form>
+    </div>
+  </div>
+<script src="index.js"></script>
+</body>
 </html>
