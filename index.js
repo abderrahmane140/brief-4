@@ -82,7 +82,7 @@ form.addEventListener('submit',(e) =>{
             ticket.classList.add("bg-blue-500");
         }
 
-
+    
     ticket.innerHTML = `<span class="truncate">${costumer_name} (${number_people})</span>`;
 
     // add delete button 
@@ -90,8 +90,12 @@ form.addEventListener('submit',(e) =>{
     btn.innerHTML =  '<i class="fa-solid fa fa-trash"></i>';
     btn.className = "ml-2 cursor-pointer text-white";
 
+    ticket.dataset.index = reservations.length - 1;
 
     btn.addEventListener('click', () => {
+        const index = ticket.dataset.index;
+        reservations.splice(index, 1);
+        ticket.remove();
     })
 
     ticket.appendChild(btn);
