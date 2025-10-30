@@ -167,7 +167,17 @@
       </div>
 
       <form class="space-y-3">
-        <input class="w-full rounded border border-slate-100 px-3 py-2 bg-gray-50" placeholder="Day • 09:00" readonly />
+        <div>
+          <label class="block text-xs text-slate-500 mb-1">Select Day</label>
+          <select id="reservation-day" class="w-full rounded border border-slate-100 px-3 py-2 bg-white">
+            <option value="">Choose a day</option>
+            <option value="26">Monday • Nov 26</option>
+            <option value="27">Tuesday • Nov 27</option>
+            <option value="28">Wednesday • Nov 28</option>
+            <option value="29">Thursday • Nov 29</option>
+            <option value="30">Friday • Nov 30</option>
+          </select>
+        </div>
 
         <input class="w-full rounded border border-slate-100 px-3 py-2" placeholder="Customer name" />
 
