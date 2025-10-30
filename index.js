@@ -71,13 +71,22 @@ form.addEventListener('submit',(e) =>{
     const topPercent = (startIndex / 8) * 100;
 
 
-    ticket.className = `absolute left-1 right-1 text-white rounded-lg px-2 py-1 text-xs flex justify-between items-center` ;
+    ticket.className = `absolute left-1  right-1 text-white rounded-lg px-2 py-1 text-xs flex justify-between items-center ` ;
+        if (reservation_type === "Standard") {
+            ticket.classList.add("bg-emerald-500");
+        } else if (reservation_type === "VIP") {
+            ticket.classList.add("bg-red-500");
+        } else if (reservation_type === "Group") {
+            ticket.classList.add("bg-blue-500");
+        }
+
     ticket.style.top = `${topPercent}%`;
     ticket.style.height = `${heightPercent}%`;
     ticket.innerHTML = `${costumer_name} (${number_people})`;
 
     dayColumn.appendChild(ticket);
 
+    //${reservation_type === "Standard"} ? 'bg-emerald-500' ${reservation_type === "VIP"} ? 'bg-red-500' ${reservation_type === "Group"} ? 'bg-blue-500'
     closeModel();
     form.reset();
 
