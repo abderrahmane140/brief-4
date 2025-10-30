@@ -7,9 +7,20 @@ const form = document.getElementById('form')
 const startHour = document.getElementById('startHour')
 const endHour = document.getElementById('endHour')
 
-console.log(form)
+
 const reservations = [];
 
+const hourMap = {
+  "09:00": 0,
+  "10:00": 1,
+  "11:00": 2,
+  "12:00": 3,
+  "13:00": 4,
+  "14:00": 5,
+  "15:00": 6,
+  "16:00": 7,
+  "17:00": 8 
+}
 
 
 function openModel(day,start,end){
@@ -31,18 +42,44 @@ closeBtn.addEventListener('click', closeModel);
 form.addEventListener('submit',(e) =>{
     e.preventDefault();
 
+    const day = document.getElementById('reservation-day').value;
+    const costumer_name = document.getElementById('customerNmae').value;
+    const start_hour = document.getElementById('startHour').value;
+    const end_hour = document.getElementById('endHour').value;
+    const number_people = document.getElementById('numberPeopel').value;
+    const reservation_type = document.getElementById('reservationType').value;
+
+
     reservation = {
-        reservation_day : document.getElementById('reservation-day').value,
-        costumerName : document.getElementById('customerNmae').value,
-        startHour : document.getElementById('startHour').value,
-        endHour : document.getElementById('endHour').value,
-        numberPeopel : document.getElementById('numberPeopel').value,
-        reservationType : document.getElementById('reservationType').value
+        reservation_day : day,
+        costumerName : costumer_name,
+        startHour : startHour,
+        endHour : end_hour,
+        numberPeopel : number_people,
+        reservationType : reservation_type
     }
 
     reservations.push(reservation)
     console.log(reservations)
 
+    const dayColumn = document.getElementById(`day-${day}`);
+    const ticket = document.createElement('div');
+
+    const startIndex = hourMap[start_hour];
+    const endIndex = hourMap[end_hour] || (startIndex + 1);
+    const heightPercent =  ((endIndex - startIndex) / 8)  * 100
+    const topPercent = (startIndex / 8) * 100;
+
+
+    ticket.className = `absolute left-1 right-1 text-white rounded-lg px-2 py-1 text-xs flex justify-between items-center` ;
+    ticket.style.top = `${topPercent}%`;
+    ticket.style.height = `${heightPercent}%`;
+    ticket.innerHTML = `${costumer_name} (${number_people})`;
+
+    dayColumn.appendChild(ticket);
+
+    closeModel();
+    form.reset();
 
 })
 
