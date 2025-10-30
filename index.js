@@ -70,8 +70,10 @@ form.addEventListener('submit',(e) =>{
     const heightPercent =  ((endIndex - startIndex) / 8)  * 100
     const topPercent = (startIndex / 8) * 100;
 
+    ticket.style.top = `${topPercent}%`;
+    ticket.style.height = `${heightPercent}%`;
+    ticket.className = `absolute left-1 right-1 text-white rounded-lg px-2 py-1 text-xs flex justify-between items-center`;
 
-    ticket.className = `absolute left-1  right-1 text-white rounded-lg px-2 py-1 text-xs flex justify-between items-center ` ;
         if (reservation_type === "Standard") {
             ticket.classList.add("bg-emerald-500");
         } else if (reservation_type === "VIP") {
@@ -80,13 +82,24 @@ form.addEventListener('submit',(e) =>{
             ticket.classList.add("bg-blue-500");
         }
 
-    ticket.style.top = `${topPercent}%`;
-    ticket.style.height = `${heightPercent}%`;
-    ticket.innerHTML = `${costumer_name} (${number_people})`;
+
+    ticket.innerHTML = `<span class="truncate">${costumer_name} (${number_people})</span>`;
+
+    // add delete button 
+    const btn = document.createElement('div')   
+    btn.innerHTML =  '<i class="fa-solid fa fa-trash"></i>';
+    btn.className = "ml-2 cursor-pointer text-white";
+
+
+    btn.addEventListener('click', () => {
+    })
+
+    ticket.appendChild(btn);
+
+
 
     dayColumn.appendChild(ticket);
 
-    //${reservation_type === "Standard"} ? 'bg-emerald-500' ${reservation_type === "VIP"} ? 'bg-red-500' ${reservation_type === "Group"} ? 'bg-blue-500'
     closeModel();
     form.reset();
 
