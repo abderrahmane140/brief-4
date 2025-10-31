@@ -23,12 +23,32 @@ const hourMap = {
 };
 const totalSlots = Object.keys(hourMap).length;
 
-// ===== schedule config (change these if your visible schedule differs) =====
-// schedule visible area: 09:00 -> 17:00 (minutes)
-const SCHEDULE_START = 9 * 60;   // 09:00 in minutes
-const SCHEDULE_END   = 17 * 60;  // 17:00 in minutes
+const SCHEDULE_START = 9 * 60;   
+const SCHEDULE_END   = 17 * 60;  
 const TOTAL_SCHEDULE_MINUTES = SCHEDULE_END - SCHEDULE_START;
-// ==========================================================================
+
+//localstorage 
+function saveReservations() {
+    localStorage.setItem('reservations',JSON.stringify(reservations));
+}
+
+function loadReservations() {
+  const stored = localStorage.getItem('reservations');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      parsed.forEach(r => {
+        // rebuild reservation with element = null
+        const res = { ...r, el: null };
+        reservations.push(res);
+        renderTicketForReservation(res);
+      });
+    } catch (e) {
+      console.error('Failed to load reservations:', e);
+    }
+  }
+}
+
 
 function formatTimeToMinutes(HHMM) {
   if (!HHMM) return NaN;
@@ -101,7 +121,7 @@ form.addEventListener('submit', (e) => {
     const rEnd = formatTimeToMinutes(r.endHour);
     if (Number.isNaN(rStart) || Number.isNaN(rEnd)) return false;
 
-    return (startMin < rEnd) && (rStart < endMin); // overlap if true
+    return (startMin < rEnd) && (rStart < endMin); 
   });
 
   if (conflict) {
@@ -128,6 +148,7 @@ form.addEventListener('submit', (e) => {
     existing.reservationType = reservation_type;
 
     renderTicketForReservation(existing);
+    saveReservations();
     successAlert('Reservation updated successfully');
     closeModel();
     return;
@@ -147,6 +168,7 @@ form.addEventListener('submit', (e) => {
 
   reservations.push(reservation);
   renderTicketForReservation(reservation);
+  saveReservations();
   successAlert('The reservation created successfully');
   closeModel();
 });
@@ -233,6 +255,7 @@ function renderTicketForReservation(reservation) {
     const idx = reservations.findIndex(r => r.id === reservation.id);
     if (idx !== -1) reservations.splice(idx, 1);
     if (reservation.el && reservation.el.remove) reservation.el.remove();
+    saveReservations();
     successAlert('The reservation deleted successfully');
   });
 
@@ -280,3 +303,7 @@ function ErrorAlert(message) {
     if (el) el.remove();
   }, 3000);
 }
+
+
+//to load data 
+document.addEventListener('DOMContentLoaded', loadReservations);
