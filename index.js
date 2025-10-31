@@ -52,7 +52,7 @@
 
         //validation
 
-        if(day.trim() == '') return alert('you must enter a day');
+        if(day.trim() == '') return ErrorAlert('You must enter a day');
         if(costumer_name.trim() == '') return alert('you must enter your name');
 
 
@@ -116,11 +116,12 @@
         };
 
         reservations.push(reservation);
-
+        
         renderTicketForReservation(reservation);
-
+        
         closeModel();
         form.reset();
+        successAlert("the reservation created successfully ");
         //console.log(reservations)
     });
 
@@ -137,7 +138,6 @@
         const startIndex = hourMap[reservation.startHour];
         const endIndex = hourMap[reservation.endHour] || (startIndex + 1);
         const heightPercent = ((endIndex - startIndex) / 8) * 100;
-        console.log(heightPercent)
         const topPercent = (startIndex / 8) * 100;
 
 
@@ -236,6 +236,43 @@
 
 
     }
+
+
+function successAlert(message){
+    const div = document.createElement('div');
+    div.className = 'p-4 mb-4 flex justify-between mt-4 text-sm bg-green-700 text-green-100 w-[400px] block m-auto z-30 font-bold rounded-sm'
+    const text  = document.createElement('p')
+    div.innerHTML = '<i class="fa-solid fa-check text-green-300"></i>';
+    text.textContent = `${message}`
+    const btn = document.createElement('button')
+    btn.textContent ='x';
+    div.id = 'successAlert'
+    div.appendChild(text)
+    div.appendChild(btn);
+    document.body.prepend(div)
+
+    btn.addEventListener('click',() => {
+        document.getElementById('successAlert').remove();
+    })
+}
+
+function ErrorAlert(message){
+    const div = document.createElement('div');
+    div.className = 'p-4 mb-4 flex justify-between mt-4 text-sm bg-red-700 text-red-300 w-[400px] block m-auto z-[9999] font-bold rounded-sm fixed top-4 left-1/2 -translate-x-1/2 shadow-lg'
+    const text  = document.createElement('p')
+    div.innerHTML = '<i class="fa-solid fa-circle-exclamation mt-1 text-red-300"></i>';
+    text.textContent = `${message}`
+    const btn = document.createElement('button')
+    btn.textContent ='x';
+    div.id = 'errorAlert'
+    div.appendChild(text)
+    div.appendChild(btn)
+    document.body.prepend(div)
+
+    btn.addEventListener('click',() => {
+        document.getElementById('errorAlert').remove();
+    })
+}
 
 
 
