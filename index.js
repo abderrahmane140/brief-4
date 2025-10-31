@@ -20,7 +20,6 @@ const hourMap = {
   "14:00": 5,
   "15:00": 6,
   "16:00": 7,
-  "17:00": 8
 };
 const totalSlots = Object.keys(hourMap).length;
 

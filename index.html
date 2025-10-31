@@ -5,25 +5,52 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Calendar</title>
 
-
   <script src="https://cdn.tailwindcss.com"></script>
-
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     html,body { height:100%; }
-    .calendar-root { height: calc(100vh - 96px); } 
-    .hour-cell { height: calc((100vh - 200px) / 8); } 
+    /* Desktop: calendar fills available space */
+    .calendar-root { height: calc(100vh - 96px); }
+
+    /* default hour cell height (desktop & tablet) */
+    .hour-cell { height: calc((100vh - 220px) / 8); }
+
     @media (min-width: 1280px) {
       .hour-cell { height: calc((100vh - 160px) / 8); }
     }
 
+    /* mobile: reduce hour height to avoid huge scroll */
+    @media (max-width: 640px) {
+      .calendar-root { height: calc(100vh - 88px); }
+      .hour-cell { height: 72px; } /* touch friendly */
+    }
 
-    .event-card { box-shadow: 0 6px 18px rgba(15,23,42,0.08); }
+    /* day columns when in horizontal scroll */
+    .days-scroll { display: flex; gap: 0.75rem; padding: 0.5rem; }
+    .days-scroll > .day-view { min-width: 280px; flex: 0 0 auto; position: relative; }
+
+    /* make tickets respect parent boundaries on small screens */
+    .day-column-relative { position: relative; height: 100%; }
+
+    /* make modal full screen on mobile */
+    @media (max-width: 640px) {
+      #reservation-modal > .modal-card { width: 100%; height: 86vh; border-radius: 1rem 1rem 0 0; overflow:auto; }
+    }
+
+    /* show time labels inside each row on small screens (when left column hidden) */
+    @media (max-width: 640px) {
+      .time-label-mobile { display:block; }
+      .time-label-desktop { display:none; }
+    }
+    @media (min-width: 641px) {
+      .time-label-mobile { display:none; }
+      .time-label-desktop { display:block; }
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
   <!-- Header -->
-   
   <header class="bg-white border-b border-slate-100">
     <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
       <div class="flex items-center gap-4">
@@ -37,7 +64,7 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <button class="px-3 py-1 rounded-md bg-white border border-slate-100 text-sm hover:shadow-sm">Today</button>
+        <button class="px-3 py-1 rounded-md bg-white border border-slate-100 text-sm hover:shadow-sm hidden sm:inline">Today</button>
         <button class="px-4 py-2 rounded-md bg-sky-600 text-white text-sm hover:bg-sky-700" id="openBtn">New reservation</button>
       </div>
     </div>
@@ -45,8 +72,9 @@
 
   <main class="max-w-7xl mx-auto px-4 pt-6 calendar-root">
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden h-full grid grid-rows-[auto_1fr]">
- 
-      <div class="grid grid-cols-6 border-b border-slate-100">
+
+      <!-- headers (desktop) -->
+      <div class="grid grid-cols-6 border-b border-slate-100 hidden sm:grid">
         <div class="p-3 bg-white/80"></div>
         <div class="p-3 text-center font-medium text-slate-700">Mon <div class="text-xs text-slate-400">Nov 26</div></div>
         <div class="p-3 text-center font-medium text-slate-700">Tue <div class="text-xs text-slate-400">Nov 27</div></div>
@@ -55,127 +83,203 @@
         <div class="p-3 text-center font-medium text-slate-700">Fri <div class="text-xs text-slate-400">Nov 30</div></div>
       </div>
 
-  
-      <div class="grid grid-cols-6 h-full">
+      <!-- body -->
+      <div class="h-full">
 
-        <div class="border-r border-slate-100 bg-slate-50">
-          <div class="flex flex-col h-full">
-    
-            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">09:00</div>
-            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">10:00</div>
-            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">11:00</div>
-            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">12:00</div>
-            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">13:00</div>
-            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">14:00</div>
-            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">15:00</div>
-            <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500">16:00</div>
-          </div>
-        </div>
-
-
-
-        <div class="relative" id="day-26">
-          <div class="flex flex-col h-full">
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
+        <!-- Desktop grid (visible on sm+) -->
+        <div class="hidden sm:grid sm:grid-cols-6 h-full">
+          <div class="border-r border-slate-100 bg-slate-50">
+            <div class="flex flex-col h-full">
+              <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500 time-label-desktop">09:00</div>
+              <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500 time-label-desktop">10:00</div>
+              <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500 time-label-desktop">11:00</div>
+              <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500 time-label-desktop">12:00</div>
+              <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500 time-label-desktop">13:00</div>
+              <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500 time-label-desktop">14:00</div>
+              <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500 time-label-desktop">15:00</div>
+              <div class="hour-cell flex items-center justify-end pr-4 text-xs text-slate-500 time-label-desktop">16:00</div>
+            </div>
           </div>
 
+          <!-- days for desktop -->
+          <div class="relative" id="day-26">
+            <div class="flex flex-col h-full">
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+            </div>
+          </div>
 
-          <div class="absolute left-4 right-4 top-[calc(1*100%/8)]" style="height:calc(2*(100%/8) - 12px)">
-            <div class="event-card bg-emerald-500 text-white rounded-lg px-3 py-2 text-xs flex items-center justify-between gap-3">
-              <div class="truncate font-medium">Marketing Meeting</div>
-              <div class="text-[11px] font-semibold">09:00–11:00</div>
+          <div class="relative" id="day-27">
+            <div class="flex flex-col h-full">
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+            </div>
+          </div>
+
+          <div class="relative" id="day-28">
+            <div class="flex flex-col h-full">
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+            </div>
+          </div>
+
+          <div class="relative" id="day-29">
+            <div class="flex flex-col h-full">
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+            </div>
+          </div>
+
+          <div class="relative" id="day-30">
+            <div class="flex flex-col h-full">
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
+              <div class="hour-cell border-b border-slate-100 day-column-relative"></div>
             </div>
           </div>
         </div>
 
-        <div class="relative" id="day-27">
-          <div class="flex flex-col h-full">
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-          </div>
-
-          <div class="absolute left-4 right-4 top-[calc(3*100%/8)]" style="height:calc(1*(100%/8) - 12px)">
-            <div class="event-card bg-sky-500 text-white rounded-lg px-3 py-2 text-xs flex items-center justify-between gap-3">
-              <div class="truncate font-medium">Client Call</div>
-              <div class="text-[11px] font-semibold">12:00–13:00</div>
+        <!-- Mobile / Tablet: horizontally scrollable days (visible on xs and sm) -->
+        <div class="sm:hidden overflow-x-auto h-full">
+          <div class="days-scroll">
+            <!-- left time column hidden on mobile; we show time labels inside each hour cell -->
+            <div class="day-view day-26" id="day-26-mobile">
+              <div class="bg-white/50 rounded-md overflow-hidden h-full">
+                <div class="flex flex-col h-full">
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3">
+                    <div class="text-xs text-slate-500 time-label-mobile">09:00</div>
+                  </div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3">
+                    <div class="text-xs text-slate-500 time-label-mobile">10:00</div>
+                  </div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3">
+                    <div class="text-xs text-slate-500 time-label-mobile">11:00</div>
+                  </div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3">
+                    <div class="text-xs text-slate-500 time-label-mobile">12:00</div>
+                  </div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3">
+                    <div class="text-xs text-slate-500 time-label-mobile">13:00</div>
+                  </div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3">
+                    <div class="text-xs text-slate-500 time-label-mobile">14:00</div>
+                  </div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3">
+                    <div class="text-xs text-slate-500 time-label-mobile">15:00</div>
+                  </div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3">
+                    <div class="text-xs text-slate-500 time-label-mobile">16:00</div>
+                  </div>
+                </div>
+                <!-- container for absolute tickets -->
+                <div class="absolute inset-0 pointer-events-none" id="day-26"></div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div class="relative" id="day-28">
-          <div class="flex flex-col h-full">
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-          </div>
-
-          <div class="absolute left-4 right-4 top-[calc(5*100%/8)]" style="height:calc(2*(100%/8) - 12px)">
-            <div class="event-card bg-purple-600 text-white rounded-lg px-3 py-2 text-xs flex items-center justify-between gap-3">
-              <div class="truncate font-medium">Team Sync</div>
-              <div class="text-[11px] font-semibold">14:00–16:00</div>
+            <!-- copy the same structure for other days: each needs an id matching your JS day column ids -->
+            <div class="day-view" id="day-27-mobile">
+              <div class="bg-white/50 rounded-md overflow-hidden h-full">
+                <div class="flex flex-col h-full">
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">09:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">10:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">11:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">12:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">13:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">14:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">15:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">16:00</div></div>
+                </div>
+                <div class="absolute inset-0 pointer-events-none" id="day-27"></div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div class="relative" id="day-29">
-          <div class="flex flex-col h-full">
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-          </div>
-
-          <div class="absolute left-4 right-4 top-[calc(6*100%/8)]" style="height:calc(1*(100%/8) - 12px)">
-            <div class="event-card bg-rose-500 text-white rounded-lg px-3 py-2 text-xs flex items-center justify-between gap-3">
-              <div class="truncate font-medium">Workshop</div>
-              <div class="text-[11px] font-semibold">15:00–16:00</div>
+            <div class="day-view" id="day-28-mobile">
+              <div class="bg-white/50 rounded-md overflow-hidden h-full">
+                <div class="flex flex-col h-full">
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">09:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">10:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">11:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">12:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">13:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">14:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">15:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">16:00</div></div>
+                </div>
+                <div class="absolute inset-0 pointer-events-none" id="day-28"></div>
+              </div>
             </div>
+
+            <div class="day-view" id="day-29-mobile">
+              <div class="bg-white/50 rounded-md overflow-hidden h-full">
+                <div class="flex flex-col h-full">
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">09:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">10:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">11:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">12:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">13:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">14:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">15:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">16:00</div></div>
+                </div>
+                <div class="absolute inset-0 pointer-events-none" id="day-29"></div>
+              </div>
+            </div>
+
+            <div class="day-view" id="day-30-mobile">
+              <div class="bg-white/50 rounded-md overflow-hidden h-full">
+                <div class="flex flex-col h-full">
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">09:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">10:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">11:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">12:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">13:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">14:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">15:00</div></div>
+                  <div class="hour-cell border-b border-slate-100 flex items-center px-3"><div class="text-xs text-slate-500 time-label-mobile">16:00</div></div>
+                </div>
+                <div class="absolute inset-0 pointer-events-none" id="day-30"></div>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div class="relative" id="day-30">
-          <div class="flex flex-col h-full">
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-            <div class="hour-cell border-b border-slate-100"></div>
-          </div>
-
-
-        </div>
       </div>
     </div>
   </main>
 
-
+  <!-- Modal -->
   <div  class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40" id="reservation-modal">
-    <div class="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl mx-4">
+    <div class="w-full sm:max-w-md modal-card bg-white rounded-2xl p-6 shadow-2xl mx-4">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-sky-600" id="title-form">Create reservation</h3>
         <button id="closeBtn" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
@@ -200,38 +304,33 @@
           <div>
             <label class="block text-xs text-slate-500 mb-1">Start</label>
             <select class="w-full rounded border border-slate-100 px-3 py-2 bg-white" id="startHour">
-
-            <option value="09:00">09:00</option>
-            <option value="10:00">10:00</option>
-            <option value="11:00">11:00</option>
-            <option value="12:00">12:00</option>
-            <option value="13:00">13:00</option>
-            <option value="14:00">14:00</option>
-            <option value="15:00">15:00</option>
-            <option value="16:00">16:00</option>
-            <option value="17:00">17:00</option>
+              <option value="09:00">09:00</option>
+              <option value="10:00">10:00</option>
+              <option value="11:00">11:00</option>
+              <option value="12:00">12:00</option>
+              <option value="13:00">13:00</option>
+              <option value="14:00">14:00</option>
+              <option value="15:00">15:00</option>
+              <option value="16:00">16:00</option>
             </select>
           </div>
           <div>
             <label class="block text-xs text-slate-500 mb-1">End</label>
             <select class="w-full rounded border border-slate-100 px-3 py-2 bg-white" id="endHour">
-      
-            <option value="09:30">09:30</option>
-            <option value="10:00">10:00</option>
-            <option value="10:30">10:30</option>
-            <option value="11:00">11:00</option>
-            <option value="11:30">11:30</option>
-            <option value="12:00">12:00</option>
-            <option value="12:30">12:30</option>
-            <option value="13:00">13:00</option>
-            <option value="13:30">13:30</option>
-            <option value="14:00">14:00</option>
-            <option value="14:30">14:30</option>
-            <option value="15:00">15:00</option>
-            <option value="15:30">15:30</option>
-            <option value="16:00">16:00</option>
-            <option value="16:30">16:30</option>
-            <option value="17:00">17:00</option>
+              <option value="09:30">09:30</option>
+              <option value="10:00">10:00</option>
+              <option value="10:30">10:30</option>
+              <option value="11:00">11:00</option>
+              <option value="11:30">11:30</option>
+              <option value="12:00">12:00</option>
+              <option value="12:30">12:30</option>
+              <option value="13:00">13:00</option>
+              <option value="13:30">13:30</option>
+              <option value="14:00">14:00</option>
+              <option value="14:30">14:30</option>
+              <option value="15:00">15:00</option>
+              <option value="15:30">15:30</option>
+              <option value="16:00">16:00</option>
             </select>
           </div>
         </div>
@@ -249,6 +348,7 @@
       </form>
     </div>
   </div>
+
 <script src="index.js"></script>
 </body>
 </html>
