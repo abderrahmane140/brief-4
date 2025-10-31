@@ -50,8 +50,7 @@ form.addEventListener('submit',(e) =>{
     const number_people = document.getElementById('numberPeopel').value;
     const reservation_type = document.getElementById('reservationType').value;
 
-
-    reservation = {
+    const reservation = {
         id: Date.now() + Math.floor(Math.random() * 1000),
         reservation_day : day,
         costumerName : costumer_name,
@@ -60,95 +59,125 @@ form.addEventListener('submit',(e) =>{
         numberPeopel : number_people,
         reservationType : reservation_type,
         el: null
-    }
+    };
 
-    reservations.push(reservation)
-    console.log(reservations)
+    reservations.push(reservation);
 
-    const dayColumn = document.getElementById(`day-${day}`);
-    const ticket = document.createElement('div');
-
-    const startIndex = hourMap[start_hour];
-    const endIndex = hourMap[end_hour] || (startIndex + 1);
-    const heightPercent =  ((endIndex - startIndex) / 8)  * 100
-    const topPercent = (startIndex / 8) * 100;
-
-    ticket.style.top = `${topPercent}%`;
-    ticket.style.height = `${heightPercent}%`;
-    ticket.className = `absolute left-1 right-1 text-white rounded-lg px-2 py-1 text-xs flex justify-between items-center`;
-
-        if (reservation_type === "Standard") {
-            ticket.classList.add("bg-emerald-500");
-        } else if (reservation_type === "VIP") {
-            ticket.classList.add("bg-red-500");
-        } else if (reservation_type === "Group") {
-            ticket.classList.add("bg-blue-500");
-        }
-
-    
-    ticket.innerHTML = `<span class="truncate">${costumer_name} (${number_people})</span>`;
-
-    // add delete button 
-    const btnDelete = document.createElement('div')   
-    btnDelete.innerHTML =  '<i class="fa-solid fa fa-trash"></i>';
-    btnDelete.className = "ml-2 cursor-pointer text-white";
-
-    ticket.dataset.index = reservations.length - 1;
-
-    btnDelete.addEventListener('click', () => {
-        const index = ticket.dataset.index;
-        reservations.splice(index, 1);
-        ticket.remove();
-    })
-
-    ticket.appendChild(btnDelete);
-
-    // add update button 
-    const btnUpdate = document.createElement('div')   
-    btnUpdate.innerHTML =  '<i class="fa-solid fa-pen-to-square"></i>';
-    btnUpdate.className = "ml-2 cursor-pointer text-white";
-
-
-    btnUpdate.addEventListener('click' , () => {
-        openModel();
-
-        document.getElementById('reservation-day').value = day;
-        document.getElementById('customerNmae').value = costumer_name;
-        document.getElementById('startHour').value = start_hour;
-        document.getElementById('endHour').value = end_hour;
-        document.getElementById('numberPeopel').value = number_people;
-        document.getElementById('reservationType').value = reservation_type;
-
-
-        form.onsubmit  = (e) => {
-            e.preventDefault();
-
-            reservations.costumerName = document.getElementById('customerNmae').value;
-            reservations.startHour = document.getElementById('startHour').value;
-            reservations.endHour = document.getElementById('endHour').value;
-            reservations.numberPeopel = document.getElementById('numberPeopel').value;
-            reservations.reservationType = document.getElementById('reservationType').value;
-
-
-            ticket.innerHTML =`<span class="truncate">${reservation.costumerName} (${reservation.numberPeopel})</span>`
-
-
-            closeModel();
-
-
-        }
-
-
-    })
-
-    ticket.appendChild(btnUpdate)
-
-
-    dayColumn.appendChild(ticket);
+    renderTicketForReservation(reservation);
 
     closeModel();
     form.reset();
+});
 
-})
+
+function renderTicketForReservation(reservation){
+
+    const day = reservation.reservation_day;
+    const dayColumn = document.getElementById(`day-${day}`);
+    if (!dayColumn) {
+        console.warn('No column for day', day);
+        return;
+    }
+
+    const startIndex = hourMap[reservation.startHour];
+    const endIndex = hourMap[reservation.endHour] || (startIndex + 1);
+    const heightPercent = ((endIndex - startIndex) / 8) * 100;
+    const topPercent = (startIndex / 8) * 100;
+
+
+
+
+    // create ticket
+    const ticket = document.createElement('div');
+    ticket.className = `absolute left-1 right-1 text-white rounded-lg px-2 py-1 text-xs flex justify-between items-center overflow-hidden`;
+    ticket.style.top = `${topPercent}%`;
+    ticket.style.height = `${heightPercent}%`;
+    ticket.dataset.id = reservation.id;
+
+    // color by reservation type (use reservation.reservationType)
+    if (reservation.reservationType === "Standard") {
+        ticket.classList.add("bg-emerald-500");
+    } else if (reservation.reservationType === "VIP") {
+        ticket.classList.add("bg-red-500");
+    } else if (reservation.reservationType === "Group") {
+        ticket.classList.add("bg-blue-500");
+    } else {
+        ticket.classList.add("bg-slate-500");
+    }
+
+    // main text (use reservation fields)
+    const text = document.createElement('span');
+    text.className = 'truncate';
+    text.textContent = `${reservation.costumerName} (${reservation.numberPeopel})`;
+
+    // buttons container
+    const btns = document.createElement('div');
+    btns.className = 'flex items-center gap-2';
+
+    // update button
+    const btnUpdate = document.createElement('button');
+    btnUpdate.type = 'button';
+    btnUpdate.className = "p-1 text-white hover:opacity-90";
+    btnUpdate.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
+    btnUpdate.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        openModel();
+
+        document.getElementById('reservation-day').value = reservation.reservation_day;
+        document.getElementById('customerNmae').value = reservation.costumerName;
+        document.getElementById('startHour').value = reservation.startHour;
+        document.getElementById('endHour').value = reservation.endHour;
+        document.getElementById('numberPeopel').value = reservation.numberPeopel;
+        document.getElementById('reservationType').value = reservation.reservationType;
+
+        const originalHandler = form.onsubmit;
+        form.onsubmit  = function (ev) {
+            ev.preventDefault();
+
+            reservation.reservation_day = document.getElementById('reservation-day').value;
+            reservation.costumerName = document.getElementById('customerNmae').value;
+            reservation.startHour = document.getElementById('startHour').value;
+            reservation.endHour = document.getElementById('endHour').value;
+            reservation.numberPeopel = document.getElementById('numberPeopel').value;
+            reservation.reservationType = document.getElementById('reservationType').value;
+
+            // remove the old dom element
+            if (reservation.el && reservation.el.remove) reservation.el.remove();
+
+            // re-render ticket
+            renderTicketForReservation(reservation);
+
+            form.onsubmit = originalHandler;
+            closeModel();
+            form.reset();
+        };
+    });
+
+    // delete button
+    const btnDelete = document.createElement('button');
+    btnDelete.type = 'button';
+    btnDelete.className = "p-1 text-white";
+    btnDelete.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    btnDelete.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        const idx = reservations.findIndex(r => r.id === reservation.id);
+        if (idx !== -1) reservations.splice(idx, 1);
+
+        ticket.remove();
+    });
+
+    btns.appendChild(btnUpdate);
+    btns.appendChild(btnDelete);
+
+    ticket.appendChild(text);
+    ticket.appendChild(btns);
+
+    reservation.el = ticket;
+
+    dayColumn.appendChild(ticket);
+}
+
 
 
