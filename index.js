@@ -9,6 +9,7 @@ const endHour = document.getElementById('endHour')
 
 
 const reservations = [];
+let editingId = null;
 
 const hourMap = {
   "09:00": 0,
@@ -51,12 +52,14 @@ form.addEventListener('submit',(e) =>{
 
 
     reservation = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
         reservation_day : day,
         costumerName : costumer_name,
-        startHour : startHour,
+        startHour : start_hour,
         endHour : end_hour,
         numberPeopel : number_people,
-        reservationType : reservation_type
+        reservationType : reservation_type,
+        el: null
     }
 
     reservations.push(reservation)
@@ -104,6 +107,39 @@ form.addEventListener('submit',(e) =>{
     const btnUpdate = document.createElement('div')   
     btnUpdate.innerHTML =  '<i class="fa-solid fa-pen-to-square"></i>';
     btnUpdate.className = "ml-2 cursor-pointer text-white";
+
+
+    btnUpdate.addEventListener('click' , () => {
+        openModel();
+
+        document.getElementById('reservation-day').value = day;
+        document.getElementById('customerNmae').value = costumer_name;
+        document.getElementById('startHour').value = start_hour;
+        document.getElementById('endHour').value = end_hour;
+        document.getElementById('numberPeopel').value = number_people;
+        document.getElementById('reservationType').value = reservation_type;
+
+
+        form.onsubmit  = (e) => {
+            e.preventDefault();
+
+            reservations.costumerName = document.getElementById('customerNmae').value;
+            reservations.startHour = document.getElementById('startHour').value;
+            reservations.endHour = document.getElementById('endHour').value;
+            reservations.numberPeopel = document.getElementById('numberPeopel').value;
+            reservations.reservationType = document.getElementById('reservationType').value;
+
+
+            ticket.innerHTML =`<span class="truncate">${reservation.costumerName} (${reservation.numberPeopel})</span>`
+
+
+            closeModel();
+
+
+        }
+
+
+    })
 
     ticket.appendChild(btnUpdate)
 
