@@ -12,24 +12,16 @@ const reservations = [];
 let editingId = null;
 
 const hourMap = {
-  "09:00": 0,
-  "10:00": 1,
-  "11:00": 2,
-  "12:00": 3,
-  "13:00": 4,
-  "14:00": 5,
-  "15:00": 6,
-  "16:00": 7,
+  "09:00": 0, "10:00": 1, "11:00": 2, "12:00": 3,
+  "13:00": 4, "14:00": 5, "15:00": 6, "16:00": 7
 };
-const totalSlots = Object.keys(hourMap).length;
-
-const SCHEDULE_START = 9 * 60;   
-const SCHEDULE_END   = 17 * 60;  
+const SCHEDULE_START = 9 * 60;
+const SCHEDULE_END   = 17 * 60;
 const TOTAL_SCHEDULE_MINUTES = SCHEDULE_END - SCHEDULE_START;
 
-//localstorage 
+// --- LocalStorage ---
 function saveReservations() {
-    localStorage.setItem('reservations',JSON.stringify(reservations));
+  localStorage.setItem('reservations', JSON.stringify(reservations));
 }
 
 function loadReservations() {
@@ -38,7 +30,6 @@ function loadReservations() {
     try {
       const parsed = JSON.parse(stored);
       parsed.forEach(r => {
-        // rebuild reservation with element = null
         const res = { ...r, el: null };
         reservations.push(res);
         renderTicketForReservation(res);
@@ -49,22 +40,22 @@ function loadReservations() {
   }
 }
 
-
 function formatTimeToMinutes(HHMM) {
   if (!HHMM) return NaN;
   const parts = HHMM.split(':');
   if (parts.length !== 2) return NaN;
   const h = parseInt(parts[0], 10);
   const m = parseInt(parts[1], 10);
-  if (Number.isNaN(h) || Number.isNaN(m)) return NaN;
   return h * 60 + m;
 }
 
+// --- Modal open/close ---
 function openModel(day = '', reservation = null) {
   model.classList.remove("hidden");
   model.classList.add("flex");
   if (reservation) {
     formtitle.textContent = 'Update Reservation';
+    editingId = reservation.id;
   } else {
     formtitle.textContent = 'Create Reservation';
     editingId = null;
@@ -82,64 +73,47 @@ function closeModel() {
 openBtn.addEventListener('click', () => openModel());
 closeBtn.addEventListener('click', closeModel);
 
+// --- Form submit ---
 form.addEventListener('submit', (e) => {
   e.preventDefault();
 
   const day = document.getElementById('reservation-day').value.trim();
-  const customer_name = document.getElementById('customerNmae').value.trim(); // kept your id
-  const start_hour = document.getElementById('startHour').value.trim();
-  const end_hour = document.getElementById('endHour').value.trim();
-  const number_people_raw = document.getElementById('numberPeopel').value.trim(); // kept your id
+  const customer_name = document.getElementById('customerName').value.trim();
+  const start_hour = startHour.value.trim();
+  const end_hour = endHour.value.trim();
+  const number_people_raw = document.getElementById('numberPeople').value.trim();
   const reservation_type = document.getElementById('reservationType').value;
 
-  // Basic validation
-  if (day === '') return ErrorAlert('You must enter a day');
-  if (customer_name === '') return ErrorAlert('You must enter a name');
-  if (start_hour === '') return ErrorAlert('You must select a starting time');
-  if (end_hour === '') return ErrorAlert('You must select an ending time');
+  if (!day) return ErrorAlert('You must enter a day');
+  if (!customer_name) return ErrorAlert('You must enter a name');
+  if (!start_hour || !end_hour) return ErrorAlert('You must select start and end times');
 
   const number_people = parseInt(number_people_raw, 10);
-  if (Number.isNaN(number_people) || number_people < 1) return ErrorAlert('You must enter a number of people (at least 1)');
+  if (Number.isNaN(number_people) || number_people < 1) return ErrorAlert('You must enter at least 1 person');
 
   const startMin = formatTimeToMinutes(start_hour);
   const endMin = formatTimeToMinutes(end_hour);
-
-  if (Number.isNaN(startMin) || Number.isNaN(endMin)) {
-    return ErrorAlert('The time format is wrong');
-  }
-
-  if (endMin <= startMin) {
-    return ErrorAlert('End time must be after the start time!');
-  }
+  if (Number.isNaN(startMin) || Number.isNaN(endMin)) return ErrorAlert('Time format is wrong');
+  if (endMin <= startMin) return ErrorAlert('End time must be after start time');
 
   // Overlap check
   const conflict = reservations.some(r => {
     if (r.reservation_day !== day) return false;
     if (editingId && r.id === editingId) return false;
-
     const rStart = formatTimeToMinutes(r.startHour);
     const rEnd = formatTimeToMinutes(r.endHour);
-    if (Number.isNaN(rStart) || Number.isNaN(rEnd)) return false;
-
-    return (startMin < rEnd) && (rStart < endMin); 
+    return (startMin < rEnd) && (rStart < endMin);
   });
-
-  if (conflict) {
-    return ErrorAlert('This time overlaps an existing reservation.');
-  }
+  if (conflict) return ErrorAlert('This time overlaps an existing reservation.');
 
   if (editingId) {
-    // update existing
+    // update
     const idx = reservations.findIndex(r => r.id === editingId);
-    if (idx === -1) {
-      return ErrorAlert('Reservation to edit not found.');
-    }
+    if (idx === -1) return ErrorAlert('Reservation not found');
+
     const existing = reservations[idx];
+    if (existing.el) existing.el.remove();
 
-    // remove old DOM
-    if (existing.el && existing.el.remove) existing.el.remove();
-
-    // update values
     existing.reservation_day = day;
     existing.customerName = customer_name;
     existing.startHour = start_hour;
@@ -165,127 +139,109 @@ form.addEventListener('submit', (e) => {
     reservationType: reservation_type,
     el: null
   };
-
   reservations.push(reservation);
   renderTicketForReservation(reservation);
   saveReservations();
-  successAlert('The reservation created successfully');
+  successAlert('Reservation created successfully');
   closeModel();
 });
 
+// --- Render ticket (desktop + mobile) ---
 function renderTicketForReservation(reservation) {
   const day = reservation.reservation_day;
-  const dayColumn = document.getElementById(`day-${day}`);
-  if (!dayColumn) {
-    console.warn('No column for day', day);
-    return;
+  const desktopColumn = document.getElementById(`day-${day}`);
+  const mobileColumn = document.getElementById(`day-${day}-tickets`);
+
+  if (!desktopColumn && !mobileColumn) return console.warn('No columns for day', day);
+
+        const startMin = formatTimeToMinutes(reservation.startHour);
+        const endMin = formatTimeToMinutes(reservation.endHour);
+
+        const clampedStart = Math.max(startMin, SCHEDULE_START);
+        const clampedEnd   = Math.min(endMin, SCHEDULE_END);
+
+        const topPercent = ((clampedStart - SCHEDULE_START) / TOTAL_SCHEDULE_MINUTES) * 100;
+        const heightPercent = ((clampedEnd - clampedStart) / TOTAL_SCHEDULE_MINUTES) * 100;
+
+
+  // helper to create ticket element
+  function createTicketElement() {
+    const ticket = document.createElement('div');
+    ticket.className = `absolute left-1 right-1 text-white rounded-lg px-2 py-1 text-xs flex justify-between items-center overflow-hidden`;
+    ticket.style.top = `${topPercent}%`;
+    ticket.style.height = `${heightPercent}%`;
+    ticket.dataset.id = reservation.id;
+
+    if (reservation.reservationType === "Standard") ticket.classList.add("bg-emerald-500");
+    else if (reservation.reservationType === "VIP") ticket.classList.add("bg-red-500");
+    else if (reservation.reservationType === "Group") ticket.classList.add("bg-blue-500");
+    else ticket.classList.add("bg-slate-500");
+
+    const text = document.createElement('span');
+    text.className = 'truncate';
+    text.textContent = `${reservation.customerName} (${reservation.numberPeople})`;
+
+    const btns = document.createElement('div');
+    btns.className = 'flex items-center gap-2';
+
+    const btnUpdate = document.createElement('button');
+    btnUpdate.type = 'button';
+    btnUpdate.className = "p-1 text-white hover:opacity-90";
+    btnUpdate.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
+    btnUpdate.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openModel(reservation.reservation_day, reservation);
+      document.getElementById('reservation-day').value = reservation.reservation_day;
+      document.getElementById('customerName').value = reservation.customerName;
+      document.getElementById('startHour').value = reservation.startHour;
+      document.getElementById('endHour').value = reservation.endHour;
+      document.getElementById('numberPeople').value = reservation.numberPeople;
+      document.getElementById('reservationType').value = reservation.reservationType;
+    });
+
+    const btnDelete = document.createElement('button');
+    btnDelete.type = 'button';
+    btnDelete.className = "p-1 text-white";
+    btnDelete.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    btnDelete.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = reservations.findIndex(r => r.id === reservation.id);
+      if (idx !== -1) reservations.splice(idx, 1);
+      if (ticket && ticket.remove) ticket.remove();
+      saveReservations();
+      successAlert('Reservation deleted successfully');
+    });
+
+    btns.appendChild(btnUpdate);
+    btns.appendChild(btnDelete);
+    ticket.appendChild(text);
+    ticket.appendChild(btns);
+    return ticket;
   }
 
-  // parse start/end minutes
-  const startMin = formatTimeToMinutes(reservation.startHour);
-  const endMin   = formatTimeToMinutes(reservation.endHour);
+  // remove old ticket if exists
+  if (reservation.el && reservation.el.remove) reservation.el.remove();
 
-  if (Number.isNaN(startMin) || Number.isNaN(endMin)) {
-    console.warn('Invalid reservation time for', reservation);
-    return;
-  }
+  // create tickets for desktop and mobile
+  if (desktopColumn) desktopColumn.appendChild(createTicketElement());
+  if (mobileColumn) mobileColumn.appendChild(createTicketElement());
 
-  // clamp to schedule area (so tickets outside visible schedule are clamped)
-  const clampedStart = Math.max(startMin, SCHEDULE_START);
-  const clampedEnd   = Math.min(endMin, SCHEDULE_END);
-
-  if (clampedEnd <= clampedStart) {
-    console.warn('Reservation outside schedule after clamping:', reservation);
-    return;
-  }
-
-  // compute percentages relative to visible schedule
-  const topPercent = ((clampedStart - SCHEDULE_START) / TOTAL_SCHEDULE_MINUTES) * 100;
-  const heightPercent = ((clampedEnd - clampedStart) / TOTAL_SCHEDULE_MINUTES) * 100;
-
-  // create ticket
-  const ticket = document.createElement('div');
-  ticket.className = `absolute left-1 right-1 text-white rounded-lg px-2 py-1 text-xs flex justify-between items-center overflow-hidden`;
-  ticket.style.top = `${topPercent}%`;
-  ticket.style.height = `${heightPercent}%`;
-  ticket.dataset.id = reservation.id;
-
-  // color by type
-  if (reservation.reservationType === "Standard") {
-    ticket.classList.add("bg-emerald-500");
-  } else if (reservation.reservationType === "VIP") {
-    ticket.classList.add("bg-red-500");
-  } else if (reservation.reservationType === "Group") {
-    ticket.classList.add("bg-blue-500");
-  } else {
-    ticket.classList.add("bg-slate-500");
-  }
-
-  const text = document.createElement('span');
-  text.className = 'truncate';
-  text.textContent = `${reservation.customerName} (${reservation.numberPeople})`;
-
-  const btns = document.createElement('div');
-  btns.className = 'flex items-center gap-2';
-
-  // update button
-  const btnUpdate = document.createElement('button');
-  btnUpdate.type = 'button';
-  btnUpdate.className = "p-1 text-white hover:opacity-90";
-  btnUpdate.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
-  btnUpdate.addEventListener('click', (e) => {
-    e.stopPropagation();
-    openModel(reservation.reservation_day, reservation);
-    editingId = reservation.id;
-    document.getElementById('reservation-day').value = reservation.reservation_day;
-    document.getElementById('customerNmae').value = reservation.customerName;
-    document.getElementById('startHour').value = reservation.startHour;
-    document.getElementById('endHour').value = reservation.endHour;
-    document.getElementById('numberPeopel').value = reservation.numberPeople;
-    document.getElementById('reservationType').value = reservation.reservationType;
-  });
-
-  // delete button
-  const btnDelete = document.createElement('button');
-  btnDelete.type = 'button';
-  btnDelete.className = "p-1 text-white";
-  btnDelete.innerHTML = '<i class="fa-solid fa-trash"></i>';
-  btnDelete.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const idx = reservations.findIndex(r => r.id === reservation.id);
-    if (idx !== -1) reservations.splice(idx, 1);
-    if (reservation.el && reservation.el.remove) reservation.el.remove();
-    saveReservations();
-    successAlert('The reservation deleted successfully');
-  });
-
-  btns.appendChild(btnUpdate);
-  btns.appendChild(btnDelete);
-
-  ticket.appendChild(text);
-  ticket.appendChild(btns);
-
-  // store and append
-  if (reservation.el && reservation.el.remove) reservation.el.remove(); // remove old if re-rendering
-  reservation.el = ticket;
-  dayColumn.appendChild(ticket);
+  // store the reference to last created ticket (optional, can store desktop)
+  reservation.el = desktopColumn ? desktopColumn.lastChild : mobileColumn.lastChild;
 }
 
+// --- Alerts ---
 function successAlert(message) {
   const div = document.createElement('div');
   div.className = 'p-4 mb-4 flex items-center mt-4 text-sm bg-green-700 text-green-100 w-[400px] block m-auto z-30 font-bold rounded-sm';
   div.innerHTML = '<i class="fa-solid fa-check text-green-300"></i>';
   const text = document.createElement('p');
-  text.textContent = `${message}`;
+  text.textContent = message;
   text.className = 'ml-auto mr-auto';
   div.id = 'successAlert';
   div.appendChild(text);
   document.body.prepend(div);
-
-  setTimeout(() => {
-    const el = document.getElementById('successAlert');
-    if (el) el.remove();
-  }, 5000);
+  setTimeout(() => { const el = document.getElementById('successAlert'); if (el) el.remove(); }, 5000);
 }
 
 function ErrorAlert(message) {
@@ -293,17 +249,13 @@ function ErrorAlert(message) {
   div.className = 'p-4 mb-4 flex items-center mt-4 text-sm bg-red-700 text-red-300 w-[400px] block m-auto z-[9999] font-bold rounded-sm fixed top-4 left-1/2 -translate-x-1/2 shadow-lg';
   div.innerHTML = '<i class="fa-solid fa-circle-exclamation mt-1 justify-self-start text-red-300 "></i>';
   const text = document.createElement('p');
-  text.textContent = `${message}`;
+  text.textContent = message;
   text.classList = 'ml-auto mr-auto';
   div.id = 'errorAlert';
   div.appendChild(text);
   document.body.prepend(div);
-  setTimeout(() => {
-    const el = document.getElementById('errorAlert');
-    if (el) el.remove();
-  }, 3000);
+  setTimeout(() => { const el = document.getElementById('errorAlert'); if (el) el.remove(); }, 3000);
 }
 
-
-//to load data 
+// --- Load saved reservations ---
 document.addEventListener('DOMContentLoaded', loadReservations);
